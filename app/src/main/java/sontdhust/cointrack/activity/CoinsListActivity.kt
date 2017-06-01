@@ -1,7 +1,8 @@
-package sontdhust.cointrack
+package sontdhust.cointrack.activity
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
+import sontdhust.cointrack.R
 
 class CoinsListActivity : AppCompatActivity() {
 
