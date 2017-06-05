@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">CoinTrack</string>
+    <string name="label_price">Price</string>
+    <string name="label_change_abs">Change 24h</string>
+    <string name="label_change_rel">Change 24h (%)</string>
+    <string name="label_bid">Bid</string>
+    <string name="label_max">High (24h)</string>
+    <string name="label_ask">Ask</string>
+    <string name="label_min">Low (24h)</string>
+    <string name="label_volume_day">Volume (24h)</string>
+    <string name="label_volume_change">Vol Change 24h (%)</string>
+    <string name="label_volume_week">Volume (7d)</string>
+    <string name="label_vwap">Vwap (24h)</string>
+    <string name="label_volume_month">Volume (30d)</string>
+    <string name="label_buy">Buy % (24h)</string>
 </resources>

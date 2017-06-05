@@ -24,6 +24,6 @@ class CoinsListActivity : AppCompatActivity() {
         RetrieveDataTask(fun (result) {
             val adapter = CoinsAdapter(this, result)
             coinsListView.adapter = adapter
-        }).execute("https://www.bfxdata.com/json/bfxdataToday.json")
+        }).execute()
     }
 }

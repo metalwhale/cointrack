@@ -8,11 +8,50 @@ import java.io.InputStreamReader
 import java.net.URL
 import java.util.regex.Pattern
 
-class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<String, Void, ArrayList<Coin>>() {
+class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<Void, Void, ArrayList<Coin>>() {
 
-    override fun doInBackground(vararg urls: String?): ArrayList<Coin> {
-        val url = URL(urls[0])
-        val reader = BufferedReader(InputStreamReader(url.openStream()))
+    companion object {
+        val TODAY: String = "https://www.bfxdata.com/json/bfxdataToday.json"
+        val TODAY_MINUTE: String = "https://www.bfxdata.com/json/bfxdataToday1Minute.json"
+        val CURRENCY = "USD"
+    }
+
+    override fun doInBackground(vararg p0: Void?): ArrayList<Coin>? {
+        val todayData = readUrl(TODAY)
+        val todayMinuteData = readUrl(TODAY_MINUTE)
+        val coinNames = todayData.keys()
+        val coins = ArrayList<Coin>()
+        while (coinNames.hasNext()) {
+            val matcher = Pattern.compile("price([A-Z]{3})" + CURRENCY).matcher(coinNames.next())
+            if (matcher.find()) {
+                val coinName = matcher.group(1)
+                val coin = Coin(coinName)
+                coin.price = todayData.getJSONArray("price" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.changeAbs = todayMinuteData.getJSONArray("change24abs" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.changeRel = todayMinuteData.getJSONArray("change24rel" + coinName + CURRENCY).getString(0).toFloatOrNull() ?: 0.0F
+                coin.bid = todayData.getJSONArray("bid" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.max = todayData.getJSONArray("max" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.ask = todayData.getJSONArray("ask" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.min = todayData.getJSONArray("min" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.volumeDay = todayMinuteData.getJSONArray("todayVolume" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.volumeChange = todayMinuteData.getJSONArray("volumeChange" + coinName + CURRENCY).getString(0).toFloatOrNull() ?: 0.0F
+                coin.volumeWeek = todayMinuteData.getJSONArray("volumeWeek" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.vwap = todayMinuteData.getJSONArray("vwap24" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.volumeMonth = todayMinuteData.getJSONArray("volumeMonth" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
+                coin.buy = todayMinuteData.getJSONArray("buyPercentage" + coinName + CURRENCY).getString(0).toFloatOrNull() ?: 0.0F
+                coins.add(coin)
+            }
+        }
+        return coins
+    }
+
+    override fun onPostExecute(result: ArrayList<Coin>?) {
+        super.onPostExecute(result)
+        postExecute(result)
+    }
+
+    private fun readUrl(url: String): JSONObject {
+        val reader = BufferedReader(InputStreamReader(URL(url).openStream()))
         val buffer = StringBuffer()
         var read: Int
         val chars = CharArray(1024)
@@ -24,20 +63,6 @@ class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<
                 buffer.append(chars, 0, read)
             }
         } while (true)
-        val coinNames = JSONObject(buffer.toString()).keys()
-        val coins = ArrayList<Coin>()
-        while (coinNames.hasNext()) {
-            val matcher = Pattern.compile("price([A-Z]{3})USD").matcher(coinNames.next())
-            if (matcher.find()) {
-                val coinName = matcher.group(1)
-                coins.add(Coin(coinName))
-            }
-        }
-        return coins
-    }
-
-    override fun onPostExecute(result: ArrayList<Coin>?) {
-        super.onPostExecute(result)
-        postExecute(result)
+        return JSONObject(buffer.toString())
     }
 }
