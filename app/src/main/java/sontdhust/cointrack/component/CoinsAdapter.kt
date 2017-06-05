@@ -1,14 +1,15 @@
 package sontdhust.cointrack.component
 
 import android.content.Context
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import sontdhust.cointrack.R
+import sontdhust.cointrack.helper.toFormatString
 import sontdhust.cointrack.model.Coin
-import java.text.NumberFormat
 
 class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coin>(context, 0, items) {
 
@@ -43,19 +44,37 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
             viewHolder = convertView.tag as ViewHolder
         }
         viewHolder.nameTextView.text = coin.name
-        viewHolder.priceTextView.text = coin.price.toString()
-        viewHolder.changeAbsTextView.text = coin.changeAbs.toString()
-        viewHolder.changeRelTextView.text = coin.changeRel.toString()
-        viewHolder.bidTextView.text = coin.bid.toString()
-        viewHolder.maxTextView.text = coin.max.toString()
-        viewHolder.askTextView.text = coin.ask.toString()
-        viewHolder.minTextView.text = coin.min.toString()
-        viewHolder.volumeDayTextView.text = NumberFormat.getInstance().format(coin.volumeDay.toInt())
-        viewHolder.volumeChangeTextView.text = coin.volumeChange.toString()
-        viewHolder.volumeWeekTextView.text = NumberFormat.getInstance().format(coin.volumeWeek.toInt())
-        viewHolder.vwapTextView.text = coin.vwap.toString()
-        viewHolder.volumeMonthTextView.text = NumberFormat.getInstance().format(coin.volumeMonth.toInt())
-        viewHolder.buyTextView.text = coin.buy.toString()
+        viewHolder.priceTextView.text = coin.price.toFormatString()
+        viewHolder.changeAbsTextView.text = coin.changeAbs.toFormatString()
+        viewHolder.changeAbsTextView.setTextColor(
+                ContextCompat.getColor(context,
+                        if (coin.changeAbs > 0) R.color.colorGreen
+                        else if (coin.changeAbs < 0) R.color.colorRed
+                        else R.color.colorBlue)
+        )
+        viewHolder.changeRelTextView.text = coin.changeRel.toFormatString()
+        viewHolder.changeRelTextView.setTextColor(
+                ContextCompat.getColor(context,
+                        if (coin.changeRel > 0) R.color.colorGreen
+                        else if (coin.changeRel < 0) R.color.colorRed
+                        else R.color.colorBlue)
+        )
+        viewHolder.bidTextView.text = coin.bid.toFormatString()
+        viewHolder.maxTextView.text = coin.max.toFormatString()
+        viewHolder.askTextView.text = coin.ask.toFormatString()
+        viewHolder.minTextView.text = coin.min.toFormatString()
+        viewHolder.volumeDayTextView.text = coin.volumeDay.toInt().toFormatString()
+        viewHolder.volumeChangeTextView.text = coin.volumeChange.toFormatString()
+        viewHolder.volumeChangeTextView.setTextColor(
+                ContextCompat.getColor(context,
+                        if (coin.volumeChange > 0) R.color.colorGreen
+                        else if (coin.volumeChange < 0) R.color.colorRed
+                        else R.color.colorBlue)
+        )
+        viewHolder.volumeWeekTextView.text = coin.volumeWeek.toInt().toFormatString()
+        viewHolder.vwapTextView.text = coin.vwap.toFormatString()
+        viewHolder.volumeMonthTextView.text = coin.volumeMonth.toInt().toFormatString()
+        viewHolder.buyTextView.text = coin.buy.toFormatString()
         return rowView
     }
 
