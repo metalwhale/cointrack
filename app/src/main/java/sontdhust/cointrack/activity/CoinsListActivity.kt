@@ -25,7 +25,7 @@ class CoinsListActivity : AppCompatActivity() {
         val coinsListView = findViewById(R.id.coins_list_view) as ListView
         val adapter = CoinsAdapter(this, ArrayList())
         coinsListView.adapter = adapter
-        fixedRateTimer(period = 5 * 1000, action = {
+        fixedRateTimer(period = 5000, action = {
             RetrieveDataTask(fun(result) {
                 adapter.clear()
                 adapter.addAll(result)

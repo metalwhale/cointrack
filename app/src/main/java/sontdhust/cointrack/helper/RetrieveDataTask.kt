@@ -3,8 +3,10 @@ package sontdhust.cointrack.helper
 import android.os.AsyncTask
 import org.json.JSONObject
 import sontdhust.cointrack.model.Coin
+import sontdhust.cointrack.model.Coin.Field
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.Reader
 import java.net.URL
 import java.util.regex.Pattern
 
@@ -14,6 +16,21 @@ class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<
         val TODAY: String = "https://www.bfxdata.com/json/bfxdataToday.json"
         val TODAY_MINUTE: String = "https://www.bfxdata.com/json/bfxdataToday1Minute.json"
         val CURRENCY = "USD"
+        private val KEYS: HashMap<Field, String> = hashMapOf(
+                Field.PRICE to "price",
+                Field.CHANGE_ABS to "change24abs",
+                Field.CHANGE_REL to "change24rel",
+                Field.BID to "bid",
+                Field.MAX to "max",
+                Field.ASK to "ask",
+                Field.MIN to "min",
+                Field.VOLUME_DAY to "todayVolume",
+                Field.VOLUME_CHANGE to "volumeChange",
+                Field.VOLUME_WEEK to "volumeWeek",
+                Field.VWAP to "vwap24",
+                Field.VOLUME_MONTH to "volumeMonth",
+                Field.BUY to "buyPercentage"
+        )
     }
 
     override fun doInBackground(vararg p0: Void?): ArrayList<Coin>? {
@@ -26,19 +43,16 @@ class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<
             if (matcher.find()) {
                 val coinName = matcher.group(1)
                 val coin = Coin(coinName)
-                coin.price = todayData.getJSONArray("price" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.changeAbs = todayMinuteData.getJSONArray("change24abs" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.changeRel = todayMinuteData.getJSONArray("change24rel" + coinName + CURRENCY).getString(0).toFloatOrNull() ?: 0.0F
-                coin.bid = todayData.getJSONArray("bid" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.max = todayData.getJSONArray("max" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.ask = todayData.getJSONArray("ask" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.min = todayData.getJSONArray("min" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.volumeDay = todayMinuteData.getJSONArray("todayVolume" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.volumeChange = todayMinuteData.getJSONArray("volumeChange" + coinName + CURRENCY).getString(0).toFloatOrNull() ?: 0.0F
-                coin.volumeWeek = todayMinuteData.getJSONArray("volumeWeek" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.vwap = todayMinuteData.getJSONArray("vwap24" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.volumeMonth = todayMinuteData.getJSONArray("volumeMonth" + coinName + CURRENCY).getString(0).toDoubleOrNull() ?: 0.0
-                coin.buy = todayMinuteData.getJSONArray("buyPercentage" + coinName + CURRENCY).getString(0).toFloatOrNull() ?: 0.0F
+                enumValues<Field>().forEach {
+                    field ->
+                    val key = KEYS[field] + coinName + CURRENCY
+                    coin[field] = (
+                            if (todayData.has(key))
+                                todayData.getJSONArray(key).getString(0).toDoubleOrNull()
+                            else
+                                todayMinuteData.getJSONArray(key).getString(0).toDoubleOrNull()
+                            ) ?: 0.0
+                }
                 coins.add(coin)
             }
         }
@@ -51,7 +65,7 @@ class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<
     }
 
     private fun readUrl(url: String): JSONObject {
-        val reader = BufferedReader(InputStreamReader(URL(url).openStream()))
+        val reader = BufferedReader(InputStreamReader(URL(url).openStream()) as Reader?)
         val buffer = StringBuffer()
         var read: Int
         val chars = CharArray(1024)
