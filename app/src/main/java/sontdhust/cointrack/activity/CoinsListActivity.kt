@@ -11,6 +11,10 @@ import kotlin.concurrent.fixedRateTimer
 
 class CoinsListActivity : AppCompatActivity() {
 
+    /*
+     * Methods: AppCompatActivity
+     */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_coins_list)

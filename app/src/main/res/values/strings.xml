@@ -13,7 +13,7 @@
     <string name="label_vwap">Vwap (24h)</string>
     <string name="label_volume_month">Volume (30d)</string>
     <string name="label_buy">Buy % (24h)</string>
-    <string name="title_activity_coin_detail">CoinDetailActivity</string>
-    <string name="action_settings">Settings</string>
-    <string name="section_format">Hello World from section: %1$d</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

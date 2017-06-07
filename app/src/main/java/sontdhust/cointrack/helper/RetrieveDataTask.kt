@@ -33,6 +33,10 @@ class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<
         )
     }
 
+    /*
+     * Methods: AsyncTask
+     */
+
     override fun doInBackground(vararg p0: Void?): ArrayList<Coin>? {
         val todayData = readUrl(TODAY)
         val todayMinuteData = readUrl(TODAY_MINUTE)
@@ -63,6 +67,10 @@ class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<
         super.onPostExecute(result)
         postExecute(result)
     }
+
+    /*
+     * Helpers
+     */
 
     private fun readUrl(url: String): JSONObject {
         val reader = BufferedReader(InputStreamReader(URL(url).openStream()) as Reader?)

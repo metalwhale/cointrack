@@ -11,7 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.CoinsListActivity">
+        <activity
+            android:name=".activity.CoinsListActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -20,7 +22,6 @@
         </activity>
         <activity
             android:name=".activity.CoinDetailActivity"
-            android:label="@string/title_activity_coin_detail"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
