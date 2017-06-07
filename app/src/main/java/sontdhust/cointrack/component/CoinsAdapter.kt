@@ -51,8 +51,8 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
         }
         // Run update animation
         if (viewHolder.name.text == coin.name) {
-            val upFields: ArrayList<Field> = ArrayList()
-            val downFields: ArrayList<Field> = ArrayList()
+            val upFields = ArrayList<Field>()
+            val downFields = ArrayList<Field>()
             enumValues<Field>().forEach {
                 field ->
                 val oldValue = NumberFormat.getInstance().parse(viewHolder.fields[field]!!.text.toString()).toDouble()

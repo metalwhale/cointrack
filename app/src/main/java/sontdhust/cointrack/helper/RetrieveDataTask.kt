@@ -13,10 +13,10 @@ import java.util.regex.Pattern
 class RetrieveDataTask(val postExecute: (ArrayList<Coin>?) -> Unit) : AsyncTask<Void, Void, ArrayList<Coin>>() {
 
     companion object {
-        val TODAY: String = "https://www.bfxdata.com/json/bfxdataToday.json"
-        val TODAY_MINUTE: String = "https://www.bfxdata.com/json/bfxdataToday1Minute.json"
+        val TODAY = "https://www.bfxdata.com/json/bfxdataToday.json"
+        val TODAY_MINUTE = "https://www.bfxdata.com/json/bfxdataToday1Minute.json"
         val CURRENCY = "USD"
-        private val KEYS: HashMap<Field, String> = hashMapOf(
+        private val KEYS = hashMapOf(
                 Field.PRICE to "price",
                 Field.CHANGE_ABS to "change24abs",
                 Field.CHANGE_REL to "change24rel",

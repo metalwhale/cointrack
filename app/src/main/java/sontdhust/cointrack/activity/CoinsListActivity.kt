@@ -32,5 +32,9 @@ class CoinsListActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }).execute()
         })
+        coinsListView.setOnItemClickListener {
+            _, _, i, _ ->
+            startActivity(CoinDetailActivity.intent(this, adapter.getItem(i).name))
+        }
     }
 }
