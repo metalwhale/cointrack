@@ -8,4 +8,30 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="CoinRowTextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="layout_gravity">fill_horizontal</item>
+    </style>
+
+    <style name="CoinRowLeftLabelTextView" parent="CoinRowTextView">
+        <item name="android:textSize">@dimen/view_coin_row_label_text_size</item>
+        <item name="layout_columnWeight">4</item>
+    </style>
+
+    <style name="CoinRowLeftValueTextView" parent="CoinRowTextView">
+        <item name="android:paddingLeft">@dimen/view_coin_row_padding</item>
+        <item name="android:textSize">@dimen/view_coin_row_value_text_size</item>
+        <item name="layout_columnWeight">6</item>
+    </style>
+
+    <style name="CoinRowRightLabelTextView" parent="CoinRowTextView">
+        <item name="android:textSize">@dimen/view_coin_row_label_text_size</item>
+        <item name="layout_columnWeight">5</item>
+    </style>
+
+    <style name="CoinRowRightValueTextView" parent="CoinRowTextView">
+        <item name="android:paddingLeft">@dimen/view_coin_row_padding</item>
+        <item name="android:textSize">@dimen/view_coin_row_value_text_size</item>
+        <item name="layout_columnWeight">5</item>
+    </style>
 </resources>
