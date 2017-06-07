@@ -2,7 +2,6 @@ package sontdhust.cointrack.activity
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
@@ -13,7 +12,7 @@ import android.support.v7.widget.Toolbar
 import sontdhust.cointrack.R
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
 
-class CoinDetailActivity : AppCompatActivity(), CoinDetailTradesFragment.OnFragmentInteractionListener {
+class CoinDetailActivity : AppCompatActivity() {
 
     private var name: String = ""
     private var adapter: SectionsPagerAdapter? = null
@@ -54,24 +53,17 @@ class CoinDetailActivity : AppCompatActivity(), CoinDetailTradesFragment.OnFragm
     }
 
     /*
-     * Methods: CoinDetailTradesFragment.OnFragmentInteractionListener
-     */
-
-    override fun onFragmentInteraction(uri: Uri) {
-    }
-
-    /*
      * Helpers
      */
 
     private inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
-            return CoinDetailTradesFragment.newInstance(name, position.toString())
+            return CoinDetailTradesFragment.newInstance(name)
         }
 
         override fun getCount(): Int {
-            return 3
+            return 1
         }
     }
 }
