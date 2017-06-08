@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
+import android.widget.TextView
 import sontdhust.cointrack.R
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
 import sontdhust.cointrack.helper.DataFetcher
@@ -21,10 +22,13 @@ class CoinDetailActivity : AppCompatActivity() {
     private var adapter: SectionsPagerAdapter? = null
     private var pager: ViewPager? = null
     private lateinit var socket: DataFetcher.Socket
+    private var tradesChannelId: Int? = null
+    private lateinit var tradesFragment: CoinDetailTradesFragment
 
     companion object {
         private val INTENT_NAME = "name"
         private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
+        private val FRAGMENTS = arrayOf("Trades")
 
         fun intent(context: Context, name: String): Intent {
             val intent = Intent(context, CoinDetailActivity::class.java)
@@ -52,10 +56,32 @@ class CoinDetailActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val fragmentNameTextView = findViewById(R.id.fragment_name_text_view) as TextView
+        fragmentNameTextView.text = FRAGMENTS[0]
         adapter = SectionsPagerAdapter(supportFragmentManager)
         pager = findViewById(R.id.view_pager) as ViewPager
         pager?.adapter = adapter
-        connectWebSocket()
+        pager?.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+
+            override fun onPageScrollStateChanged(p0: Int) {
+            }
+
+            override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
+            }
+
+            override fun onPageSelected(p0: Int) {
+                fragmentNameTextView.text = FRAGMENTS[p0]
+            }
+        })
+        createSocket()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!socket.isOpen) {
+            socket.connect()
+            socket.subscribeTrades(name)
+        }
     }
 
     override fun onDestroy() {
@@ -70,19 +96,32 @@ class CoinDetailActivity : AppCompatActivity() {
     private inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
-            return CoinDetailTradesFragment.newInstance(name)
+            tradesFragment = CoinDetailTradesFragment.newInstance(name)
+            return tradesFragment
         }
 
         override fun getCount(): Int {
-            return 1
+            return FRAGMENTS.size
         }
     }
 
-    private fun connectWebSocket() {
-        socket = DataFetcher.Socket(this, URI(SOCKET_URI), "{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$name\" }")
-        socket.setOnMessage {
-            message ->
-            System.out.println(message)
+    private fun createSocket() {
+        socket = DataFetcher.Socket(this, URI(SOCKET_URI))
+        socket.setOnSubscribedTrades {
+            id, _ ->
+            tradesChannelId = id
+        }
+        socket.setOnSubscriptionSnapshot {
+            id, snapshot ->
+            if (tradesChannelId == id) {
+                tradesFragment.snapshot(snapshot)
+            }
+        }
+        socket.setOnSubscriptionUpdate {
+            id, update ->
+            if (tradesChannelId == id) {
+                tradesFragment.update(update)
+            }
         }
     }
 }

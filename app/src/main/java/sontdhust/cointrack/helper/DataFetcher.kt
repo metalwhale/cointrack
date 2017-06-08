@@ -4,7 +4,9 @@ import android.app.Activity
 import android.os.AsyncTask
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
+import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
 import sontdhust.cointrack.R
 import sontdhust.cointrack.model.Coin
 import sontdhust.cointrack.model.Coin.Field
@@ -104,10 +106,12 @@ class DataFetcher {
         }
     }
 
-    class Socket(val activity: Activity, val uri: URI, val subscription: String) {
+    class Socket(val activity: Activity, val uri: URI) {
 
         private var socketClient: WebSocketClient
-        private var onMessage: ((String?) -> Unit)? = null
+        private var onSubscribedTrades: ((Int, String) -> Unit)? = null
+        private var onSubscriptionSnapshot: ((Int, ArrayList<JSONArray>) -> Unit)? = null
+        private var onSubscriptionUpdate: ((Int, JSONArray) -> Unit)? = null
 
         companion object {
             private val SOCKET_STORE_PASS = "cointrack"
@@ -117,13 +121,38 @@ class DataFetcher {
             socketClient = object : WebSocketClient(uri) {
 
                 override fun onOpen(serverHandshake: ServerHandshake) {
-                    send(subscription)
                 }
 
                 override fun onMessage(message: String?) {
                     activity.runOnUiThread {
-                        if (onMessage != null) {
-                            onMessage?.invoke(message)
+                        val data = JSONTokener(message).nextValue()
+                        if (data is JSONObject) {
+                            if (data.has("event") && data.getString("event") == "subscribed"
+                                    && data.has("channel") && data.getString("channel") == "trades") {
+                                if (onSubscribedTrades != null) {
+                                    onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
+                                }
+                            }
+                        } else if (data is JSONArray) {
+                            val channelId = data.getInt(0)
+                            val value = data.get(1)
+                            if (value is JSONArray) {
+                                val snapshot = ArrayList<JSONArray>()
+                                for (update in value) {
+                                    snapshot.add(update as JSONArray)
+                                }
+                                if (onSubscriptionSnapshot != null) {
+                                    onSubscriptionSnapshot?.invoke(channelId, snapshot)
+                                }
+                            } else {
+                                val update = JSONArray()
+                                for (i in 1..(data.length() - 1)) {
+                                    update.put(data.get(i))
+                                }
+                                if (onSubscriptionUpdate != null) {
+                                    onSubscriptionUpdate?.invoke(channelId, update)
+                                }
+                            }
                         }
                     }
                 }
@@ -146,15 +175,32 @@ class DataFetcher {
             val sslContext = SSLContext.getInstance("TLS")
             sslContext?.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
             socketClient.socket = sslContext.socketFactory.createSocket()
-            socketClient.connect()
         }
 
         /*
          * Actions
          */
 
-        fun setOnMessage(onMessage: (String?) -> Unit) {
-            this.onMessage = onMessage
+        val isOpen: Boolean get() = socketClient.isOpen
+
+        fun connect() {
+            socketClient.connectBlocking()
+        }
+
+        fun subscribeTrades(pair: String) {
+            socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$pair$CURRENCY\" }")
+        }
+
+        fun setOnSubscribedTrades(onSubscribedTrades: (Int, String) -> Unit) {
+            this.onSubscribedTrades = onSubscribedTrades
+        }
+
+        fun setOnSubscriptionSnapshot(onSubscriptionSnapshot: (Int, ArrayList<JSONArray>) -> Unit) {
+            this.onSubscriptionSnapshot = onSubscriptionSnapshot
+        }
+
+        fun setOnSubscriptionUpdate(onSubscriptionUpdate: (Int, JSONArray) -> Unit) {
+            this.onSubscriptionUpdate = onSubscriptionUpdate
         }
 
         fun close() {

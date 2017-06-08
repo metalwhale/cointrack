@@ -5,7 +5,11 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ListView
+import org.json.JSONArray
 import sontdhust.cointrack.R
+import sontdhust.cointrack.component.TradesAdapter
+import java.util.*
 
 class CoinDetailTradesFragment : Fragment() {
 
@@ -14,10 +18,10 @@ class CoinDetailTradesFragment : Fragment() {
     companion object {
         private val ARG_NAME = ""
 
-        fun newInstance(param1: String): CoinDetailTradesFragment {
+        fun newInstance(name: String): CoinDetailTradesFragment {
             val fragment = CoinDetailTradesFragment()
             val args = Bundle()
-            args.putString(ARG_NAME, param1)
+            args.putString(ARG_NAME, name)
             fragment.arguments = args
             return fragment
         }
@@ -36,6 +40,22 @@ class CoinDetailTradesFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        return inflater?.inflate(R.layout.fragment_coin_detail_trades, container, false)
+        val view = inflater?.inflate(R.layout.fragment_coin_detail_trades, container, false)
+        val tradesListView = view?.findViewById(R.id.trades_list_view) as ListView
+        val adapter = TradesAdapter(activity, ArrayList())
+        tradesListView.adapter = adapter
+        return view
+    }
+
+    /*
+     * Actions
+     */
+
+    fun snapshot(trades: ArrayList<JSONArray>) {
+        System.out.println("Subscription Snapshot: ${trades[0]}")
+    }
+
+    fun update(trade: JSONArray) {
+        System.out.println("Subscription Update: $trade")
     }
 }
