@@ -44,8 +44,8 @@ class CoinDetailActivity : AppCompatActivity() {
 
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
-        supportActionBar!!.title = name
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = name
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         toolbar.setNavigationOnClickListener {
             val intent = Intent(this, CoinsListActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -53,8 +53,8 @@ class CoinDetailActivity : AppCompatActivity() {
         }
 
         adapter = SectionsPagerAdapter(supportFragmentManager)
-        pager = findViewById(R.id.container) as ViewPager
-        pager!!.adapter = adapter
+        pager = findViewById(R.id.view_pager) as ViewPager
+        pager?.adapter = adapter
         connectWebSocket()
     }
 

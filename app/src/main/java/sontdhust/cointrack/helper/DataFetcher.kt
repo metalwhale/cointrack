@@ -129,7 +129,7 @@ class DataFetcher {
                 }
 
                 override fun onError(ex: Exception?) {
-                    ex!!.printStackTrace()
+                    ex?.printStackTrace()
                 }
 
                 override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -144,7 +144,7 @@ class DataFetcher {
             val trustManagerFactory = TrustManagerFactory.getInstance("X509")
             trustManagerFactory.init(keyStore)
             val sslContext = SSLContext.getInstance("TLS")
-            sslContext!!.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
+            sslContext?.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
             socketClient.socket = sslContext.socketFactory.createSocket()
             socketClient.connect()
         }
