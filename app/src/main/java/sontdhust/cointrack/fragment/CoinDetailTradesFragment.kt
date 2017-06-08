@@ -23,6 +23,10 @@ class CoinDetailTradesFragment : Fragment() {
         }
     }
 
+    /*
+     * Methods: Fragment
+     */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (arguments != null) {

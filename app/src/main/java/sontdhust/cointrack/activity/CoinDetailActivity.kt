@@ -11,15 +11,20 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import sontdhust.cointrack.R
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
+import sontdhust.cointrack.helper.DataFetcher
+import java.net.URI
+
 
 class CoinDetailActivity : AppCompatActivity() {
 
     private var name: String = ""
     private var adapter: SectionsPagerAdapter? = null
     private var pager: ViewPager? = null
+    private lateinit var socket: DataFetcher.Socket
 
     companion object {
         private val INTENT_NAME = "name"
+        private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
 
         fun intent(context: Context, name: String): Intent {
             val intent = Intent(context, CoinDetailActivity::class.java)
@@ -50,6 +55,12 @@ class CoinDetailActivity : AppCompatActivity() {
         adapter = SectionsPagerAdapter(supportFragmentManager)
         pager = findViewById(R.id.container) as ViewPager
         pager!!.adapter = adapter
+        connectWebSocket()
+    }
+
+    override fun onDestroy() {
+        socket.close()
+        super.onDestroy()
     }
 
     /*
@@ -64,6 +75,14 @@ class CoinDetailActivity : AppCompatActivity() {
 
         override fun getCount(): Int {
             return 1
+        }
+    }
+
+    private fun connectWebSocket() {
+        socket = DataFetcher.Socket(this, URI(SOCKET_URI), "{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$name\" }")
+        socket.setOnMessage {
+            message ->
+            System.out.println(message)
         }
     }
 }

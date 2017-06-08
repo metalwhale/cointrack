@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.ListView
 import sontdhust.cointrack.R
 import sontdhust.cointrack.component.CoinsAdapter
-import sontdhust.cointrack.helper.RetrieveDataTask
+import sontdhust.cointrack.helper.DataFetcher
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
@@ -30,7 +30,7 @@ class CoinsListActivity : AppCompatActivity() {
         val adapter = CoinsAdapter(this, ArrayList())
         coinsListView.adapter = adapter
         fixedRateTimer(period = 5000, action = {
-            RetrieveDataTask(fun(result) {
+            DataFetcher.Task(fun(result) {
                 adapter.clear()
                 adapter.addAll(result)
                 adapter.notifyDataSetChanged()
