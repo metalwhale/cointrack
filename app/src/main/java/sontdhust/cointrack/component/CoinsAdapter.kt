@@ -51,8 +51,8 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
         }
         // Run update animation
         if (viewHolder.name.text == coin.name) {
-            val upFields: ArrayList<Field> = ArrayList()
-            val downFields: ArrayList<Field> = ArrayList()
+            val upFields = ArrayList<Field>()
+            val downFields = ArrayList<Field>()
             enumValues<Field>().forEach {
                 field ->
                 val oldValue = NumberFormat.getInstance().parse(viewHolder.fields[field]!!.text.toString()).toDouble()
@@ -63,7 +63,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
                     downFields.add(field)
                 }
             }
-            val upAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.colorLightGreen), Color.TRANSPARENT)
+            val upAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.lightGreen), Color.TRANSPARENT)
             upAnimator.duration = 5000
             upAnimator.addUpdateListener {
                 animator ->
@@ -72,7 +72,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
                     viewHolder.fields[field]!!.setBackgroundColor(animator.animatedValue as Int)
                 }
             }
-            val downAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.colorLightRed), Color.TRANSPARENT)
+            val downAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.lightRed), Color.TRANSPARENT)
             downAnimator.duration = 5000
             downAnimator.addUpdateListener {
                 animator ->
@@ -92,21 +92,21 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
         }
         viewHolder.fields[Field.CHANGE_ABS]!!.setTextColor(
                 ContextCompat.getColor(context,
-                        if (coin[Field.CHANGE_ABS] > 0) R.color.colorGreen
-                        else if (coin[Field.CHANGE_ABS] < 0) R.color.colorRed
-                        else R.color.colorBlue)
+                        if (coin[Field.CHANGE_ABS] > 0) R.color.green
+                        else if (coin[Field.CHANGE_ABS] < 0) R.color.red
+                        else R.color.blue)
         )
         viewHolder.fields[Field.CHANGE_REL]!!.setTextColor(
                 ContextCompat.getColor(context,
-                        if (coin[Field.CHANGE_REL] > 0) R.color.colorGreen
-                        else if (coin[Field.CHANGE_REL] < 0) R.color.colorRed
-                        else R.color.colorBlue)
+                        if (coin[Field.CHANGE_REL] > 0) R.color.green
+                        else if (coin[Field.CHANGE_REL] < 0) R.color.red
+                        else R.color.blue)
         )
         viewHolder.fields[Field.VOLUME_CHANGE]!!.setTextColor(
                 ContextCompat.getColor(context,
-                        if (coin[Field.VOLUME_CHANGE] > 0) R.color.colorGreen
-                        else if (coin[Field.VOLUME_CHANGE] < 0) R.color.colorRed
-                        else R.color.colorBlue)
+                        if (coin[Field.VOLUME_CHANGE] > 0) R.color.green
+                        else if (coin[Field.VOLUME_CHANGE] < 0) R.color.red
+                        else R.color.blue)
         )
         return rowView
     }
