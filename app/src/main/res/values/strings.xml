@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">CoinTrack</string>
+    <!-- Common -->
     <string name="label_price">Price</string>
+    <!-- Activity CoinsList -->
     <string name="label_change_abs">Change 24h</string>
     <string name="label_change_rel">Change 24h (%)</string>
     <string name="label_bid">Bid</string>
@@ -13,4 +15,10 @@
     <string name="label_vwap">Vwap (24h)</string>
     <string name="label_volume_month">Volume (30d)</string>
     <string name="label_buy">Buy % (24h)</string>
+    <!-- Fragment CoinDetailTrades -->
+    <string name="label_amount">Amount</string>
+    <string name="label_type">Type</string>
+    <string name="label_time">Time</string>
+    <string name="type_buy">buy</string>
+    <string name="type_sell">sell</string>
 </resources>

@@ -57,10 +57,10 @@ class DataFetcher {
         override fun doInBackground(vararg p0: Void?): ArrayList<Coin>? {
             val todayData = readUrl(TODAY)
             val todayMinuteData = readUrl(TODAY_MINUTE)
-            val coinNames = todayData.keys()
+            val coinNames = todayData?.keys()
             val coins = ArrayList<Coin>()
-            while (coinNames.hasNext()) {
-                val matcher = Pattern.compile("price([A-Z]{3})" + CURRENCY).matcher(coinNames.next())
+            while (coinNames?.hasNext() ?: false) {
+                val matcher = Pattern.compile("price([A-Z]{3})" + CURRENCY).matcher(coinNames?.next())
                 if (matcher.find()) {
                     val coinName = matcher.group(1)
                     val coin = Coin(coinName)
@@ -68,10 +68,10 @@ class DataFetcher {
                         field ->
                         val key = KEYS[field] + coinName + CURRENCY
                         coin[field] = (
-                                if (todayData.has(key))
-                                    todayData.getJSONArray(key).getString(0).toDoubleOrNull()
+                                if (todayData?.has(key) ?: false)
+                                    todayData?.getJSONArray(key)?.getString(0)?.toDoubleOrNull()
                                 else
-                                    todayMinuteData.getJSONArray(key).getString(0).toDoubleOrNull()
+                                    todayMinuteData?.getJSONArray(key)?.getString(0)?.toDoubleOrNull()
                                 ) ?: 0.0
                     }
                     coins.add(coin)
@@ -89,7 +89,7 @@ class DataFetcher {
          * Helpers
          */
 
-        private fun readUrl(url: String): JSONObject {
+        private fun readUrl(url: String): JSONObject? {
             val reader = BufferedReader(InputStreamReader(URL(url).openStream()) as Reader?)
             val buffer = StringBuffer()
             var read: Int
@@ -102,7 +102,8 @@ class DataFetcher {
                     buffer.append(chars, 0, read)
                 }
             } while (true)
-            return JSONObject(buffer.toString())
+            val result = buffer.toString()
+            return if (result.isNotEmpty()) JSONObject(result) else null
         }
     }
 

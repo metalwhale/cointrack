@@ -1,13 +1,16 @@
 package sontdhust.cointrack.component
 
 import android.content.Context
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import sontdhust.cointrack.R
+import sontdhust.cointrack.helper.toFormatString
 import sontdhust.cointrack.model.Trade
+import java.lang.Math.abs
 
 class TradesAdapter(context: Context, items: ArrayList<Trade>?) : ArrayAdapter<Trade>(context, 0, items) {
 
@@ -33,9 +36,11 @@ class TradesAdapter(context: Context, items: ArrayList<Trade>?) : ArrayAdapter<T
             viewHolder = convertView.tag as ViewHolder
         }
         // Update new values
-        viewHolder.price.text = trade.price.toString()
-        viewHolder.amount.text = trade.amount.toString()
-        viewHolder.time.text = trade.time.toString()
+        viewHolder.price.text = trade.price.toFormatString("###,###.0000")
+        viewHolder.amount.text = abs(trade.amount).toFormatString("0.00")
+        viewHolder.type.text = context.getString(if (trade.amount > 0) R.string.type_buy else R.string.type_sell)
+        viewHolder.type.setTextColor(ContextCompat.getColor(context, if (trade.amount > 0) R.color.green else R.color.red))
+        viewHolder.time.text = trade.time.toFormatString("HH:mm:ss")
         return rowView
     }
 

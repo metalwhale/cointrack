@@ -10,11 +10,11 @@ import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.widget.TextView
+import org.json.JSONArray
 import sontdhust.cointrack.R
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
 import sontdhust.cointrack.helper.DataFetcher
 import java.net.URI
-
 
 class CoinDetailActivity : AppCompatActivity() {
 
@@ -23,12 +23,13 @@ class CoinDetailActivity : AppCompatActivity() {
     private var pager: ViewPager? = null
     private lateinit var socket: DataFetcher.Socket
     private var tradesChannelId: Int? = null
-    private lateinit var tradesFragment: CoinDetailTradesFragment
+    private var onTradesSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
+    private var onTradesUpdate: ((JSONArray) -> Unit)? = null
 
     companion object {
         private val INTENT_NAME = "name"
         private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
-        private val FRAGMENTS = arrayOf("Trades")
+        private val FRAGMENTS = arrayOf("Trades") // TODO: Use string resource
 
         fun intent(context: Context, name: String): Intent {
             val intent = Intent(context, CoinDetailActivity::class.java)
@@ -90,14 +91,25 @@ class CoinDetailActivity : AppCompatActivity() {
     }
 
     /*
+     * Actions
+     */
+
+    fun setOnTradesSnapshot(onTradesSnapshot: (ArrayList<JSONArray>) -> Unit) {
+        this.onTradesSnapshot = onTradesSnapshot
+    }
+
+    fun setOnTradesUpdate(onTradesUpdate: (JSONArray) -> Unit) {
+        this.onTradesUpdate = onTradesUpdate
+    }
+
+    /*
      * Helpers
      */
 
     private inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
-            tradesFragment = CoinDetailTradesFragment.newInstance(name)
-            return tradesFragment
+            return CoinDetailTradesFragment.newInstance(name)
         }
 
         override fun getCount(): Int {
@@ -113,14 +125,14 @@ class CoinDetailActivity : AppCompatActivity() {
         }
         socket.setOnSubscriptionSnapshot {
             id, snapshot ->
-            if (tradesChannelId == id) {
-                tradesFragment.snapshot(snapshot)
+            if (id == tradesChannelId && onTradesSnapshot != null) {
+                onTradesSnapshot?.invoke(snapshot)
             }
         }
         socket.setOnSubscriptionUpdate {
             id, update ->
-            if (tradesChannelId == id) {
-                tradesFragment.update(update)
+            if (id == tradesChannelId && onTradesUpdate != null) {
+                onTradesUpdate?.invoke(update)
             }
         }
     }
