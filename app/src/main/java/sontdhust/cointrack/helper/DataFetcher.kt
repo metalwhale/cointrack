@@ -111,6 +111,7 @@ class DataFetcher {
 
         private var socketClient: WebSocketClient
         private var onSubscribedTrades: ((Int, String) -> Unit)? = null
+        private var onSubscribedBooks: ((Int, String) -> Unit)? = null
         private var onSubscriptionSnapshot: ((Int, ArrayList<JSONArray>) -> Unit)? = null
         private var onSubscriptionUpdate: ((Int, JSONArray) -> Unit)? = null
 
@@ -129,9 +130,11 @@ class DataFetcher {
                         val data = JSONTokener(message).nextValue()
                         if (data is JSONObject) {
                             if (data.has("event") && data.getString("event") == "subscribed"
-                                    && data.has("channel") && data.getString("channel") == "trades") {
-                                if (onSubscribedTrades != null) {
+                                    && data.has("channel")) {
+                                if (data.getString("channel") == "trades" && onSubscribedTrades != null) {
                                     onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
+                                } else if (data.getString("channel") == "book" && onSubscribedBooks != null) {
+                                    onSubscribedBooks?.invoke(data.getInt("chanId"), data.getString("pair"))
                                 }
                             }
                         } else if (data is JSONArray) {
@@ -163,7 +166,6 @@ class DataFetcher {
                 }
 
                 override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                    System.out.println(reason)
                 }
             }
             val keyStore = KeyStore.getInstance("BKS")
@@ -192,8 +194,16 @@ class DataFetcher {
             socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$pair$CURRENCY\" }")
         }
 
+        fun subscribeBooks(pair: String) {
+            socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"book\", \"pair\": \"$pair$CURRENCY\", \"prec\": \"P0\", \"len\": \"100\" }")
+        }
+
         fun setOnSubscribedTrades(onSubscribedTrades: (Int, String) -> Unit) {
             this.onSubscribedTrades = onSubscribedTrades
+        }
+
+        fun setOnSubscribedBooks(onSubscribedBooks: (Int, String) -> Unit) {
+            this.onSubscribedBooks = onSubscribedBooks
         }
 
         fun setOnSubscriptionSnapshot(onSubscriptionSnapshot: (Int, ArrayList<JSONArray>) -> Unit) {

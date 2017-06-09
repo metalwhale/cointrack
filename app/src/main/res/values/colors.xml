@@ -6,6 +6,8 @@
     <color name="green">#7cbb00</color>
     <color name="blue">#3b5998</color>
     <color name="red">#db3236</color>
-    <color name="lightGreen">#887cbb00</color>
-    <color name="lightRed">#88db3236</color>
+    <color name="mediumGreen">#887cbb00</color>
+    <color name="mediumRed">#88db3236</color>
+    <color name="lightGreen">#447cbb00</color>
+    <color name="lightRed">#44db3236</color>
 </resources>

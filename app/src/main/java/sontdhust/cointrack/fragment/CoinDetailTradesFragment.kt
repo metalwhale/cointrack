@@ -13,30 +13,9 @@ import sontdhust.cointrack.model.Trade
 
 class CoinDetailTradesFragment : Fragment() {
 
-    private var name: String? = null
-
-    companion object {
-        private val ARG_NAME = ""
-
-        fun newInstance(name: String): CoinDetailTradesFragment {
-            val fragment = CoinDetailTradesFragment()
-            val args = Bundle()
-            args.putString(ARG_NAME, name)
-            fragment.arguments = args
-            return fragment
-        }
-    }
-
     /*
      * Methods: Fragment
      */
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            name = arguments.getString(ARG_NAME)
-        }
-    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -48,10 +27,7 @@ class CoinDetailTradesFragment : Fragment() {
         val coinDetailActivity = activity as CoinDetailActivity
         coinDetailActivity.setOnTradesSnapshot {
             trades ->
-            adapter.clear()
-            val tradesArray = ArrayList<Trade>()
-            trades.mapTo(tradesArray) { Trade(it.getDouble(2), it.getDouble(3), it.getInt(1)) }
-            adapter.addAll(tradesArray)
+            trades.mapTo(list) { Trade(it.getDouble(2), it.getDouble(3), it.getInt(1)) }
             adapter.notifyDataSetChanged()
         }
         coinDetailActivity.setOnTradesUpdate {

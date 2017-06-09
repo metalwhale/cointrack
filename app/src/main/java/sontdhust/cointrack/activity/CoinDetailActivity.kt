@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar
 import android.widget.TextView
 import org.json.JSONArray
 import sontdhust.cointrack.R
+import sontdhust.cointrack.fragment.CoinDetailBidsFragment
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
 import sontdhust.cointrack.helper.DataFetcher
 import java.net.URI
@@ -25,11 +26,14 @@ class CoinDetailActivity : AppCompatActivity() {
     private var tradesChannelId: Int? = null
     private var onTradesSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
     private var onTradesUpdate: ((JSONArray) -> Unit)? = null
+    private var booksChannelId: Int? = null
+    private var onBooksSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
+    private var onBooksUpdate: ((JSONArray) -> Unit)? = null
 
     companion object {
         private val INTENT_NAME = "name"
         private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
-        private val FRAGMENTS = arrayOf("Trades") // TODO: Use string resource
+        private val FRAGMENTS = arrayOf("Trades", "Bids") // TODO: Use string resource
 
         fun intent(context: Context, name: String): Intent {
             val intent = Intent(context, CoinDetailActivity::class.java)
@@ -82,6 +86,7 @@ class CoinDetailActivity : AppCompatActivity() {
         if (!socket.isOpen) {
             socket.connect()
             socket.subscribeTrades(name)
+            socket.subscribeBooks(name)
         }
     }
 
@@ -102,6 +107,14 @@ class CoinDetailActivity : AppCompatActivity() {
         this.onTradesUpdate = onTradesUpdate
     }
 
+    fun setOnBooksSnapshot(onBooksSnapshot: (ArrayList<JSONArray>) -> Unit) {
+        this.onBooksSnapshot = onBooksSnapshot
+    }
+
+    fun setOnBooksUpdate(onBooksUpdate: (JSONArray) -> Unit) {
+        this.onBooksUpdate = onBooksUpdate
+    }
+
     /*
      * Helpers
      */
@@ -109,7 +122,13 @@ class CoinDetailActivity : AppCompatActivity() {
     private inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
-            return CoinDetailTradesFragment.newInstance(name)
+            return when (position) {
+                0 -> CoinDetailTradesFragment()
+                1 -> CoinDetailBidsFragment()
+                else -> {
+                    Fragment()
+                }
+            }
         }
 
         override fun getCount(): Int {
@@ -123,16 +142,28 @@ class CoinDetailActivity : AppCompatActivity() {
             id, _ ->
             tradesChannelId = id
         }
+        socket.setOnSubscribedBooks {
+            id, _ ->
+            booksChannelId = id
+        }
         socket.setOnSubscriptionSnapshot {
             id, snapshot ->
             if (id == tradesChannelId && onTradesSnapshot != null) {
                 onTradesSnapshot?.invoke(snapshot)
+            } else if (id == booksChannelId && onBooksSnapshot != null) {
+                onBooksSnapshot?.invoke(snapshot)
             }
         }
         socket.setOnSubscriptionUpdate {
             id, update ->
+            val isHeartBeat = update.getString(0) == "hb"
+            if (isHeartBeat) {
+                return@setOnSubscriptionUpdate
+            }
             if (id == tradesChannelId && onTradesUpdate != null) {
                 onTradesUpdate?.invoke(update)
+            } else if (id == booksChannelId && onBooksUpdate != null) {
+                onBooksUpdate?.invoke(update)
             }
         }
     }
