@@ -55,7 +55,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
             val downFields = ArrayList<Field>()
             enumValues<Field>().forEach {
                 field ->
-                val oldValue = NumberFormat.getInstance().parse(viewHolder.fields[field]!!.text.toString()).toDouble()
+                val oldValue = NumberFormat.getInstance().parse(viewHolder.fields[field]?.text.toString()).toDouble()
                 val newValue = NumberFormat.getInstance().parse(formatField(coin, field)).toDouble()
                 if (newValue > oldValue) {
                     upFields.add(field)
@@ -69,7 +69,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
                 animator ->
                 upFields.forEach {
                     field ->
-                    viewHolder.fields[field]!!.setBackgroundColor(animator.animatedValue as Int)
+                    viewHolder.fields[field]?.setBackgroundColor(animator.animatedValue as Int)
                 }
             }
             val downAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.lightRed), Color.TRANSPARENT)
@@ -78,7 +78,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
                 animator ->
                 downFields.forEach {
                     field ->
-                    viewHolder.fields[field]!!.setBackgroundColor(animator.animatedValue as Int)
+                    viewHolder.fields[field]?.setBackgroundColor(animator.animatedValue as Int)
                 }
             }
             upAnimator.start()
@@ -88,21 +88,21 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
         viewHolder.name.text = coin.name
         enumValues<Field>().forEach {
             field ->
-            viewHolder.fields[field]!!.text = formatField(coin, field)
+            viewHolder.fields[field]?.text = formatField(coin, field)
         }
-        viewHolder.fields[Field.CHANGE_ABS]!!.setTextColor(
+        viewHolder.fields[Field.CHANGE_ABS]?.setTextColor(
                 ContextCompat.getColor(context,
                         if (coin[Field.CHANGE_ABS] > 0) R.color.green
                         else if (coin[Field.CHANGE_ABS] < 0) R.color.red
                         else R.color.blue)
         )
-        viewHolder.fields[Field.CHANGE_REL]!!.setTextColor(
+        viewHolder.fields[Field.CHANGE_REL]?.setTextColor(
                 ContextCompat.getColor(context,
                         if (coin[Field.CHANGE_REL] > 0) R.color.green
                         else if (coin[Field.CHANGE_REL] < 0) R.color.red
                         else R.color.blue)
         )
-        viewHolder.fields[Field.VOLUME_CHANGE]!!.setTextColor(
+        viewHolder.fields[Field.VOLUME_CHANGE]?.setTextColor(
                 ContextCompat.getColor(context,
                         if (coin[Field.VOLUME_CHANGE] > 0) R.color.green
                         else if (coin[Field.VOLUME_CHANGE] < 0) R.color.red

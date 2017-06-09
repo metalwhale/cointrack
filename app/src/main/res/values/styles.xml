@@ -3,32 +3,32 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/cyan</item>
+        <item name="colorPrimary">@color/blue</item>
     </style>
 
-    <style name="CoinRowTextView">
+    <style name="RowTextView">
         <item name="android:layout_width">0dp</item>
         <item name="layout_gravity">fill_horizontal</item>
     </style>
 
-    <style name="CoinRowLeftLabelTextView" parent="CoinRowTextView">
+    <style name="CoinRowLeftLabelTextView" parent="RowTextView">
         <item name="android:textSize">@dimen/view_coin_row_label_text_size</item>
         <item name="layout_columnWeight">4</item>
     </style>
 
-    <style name="CoinRowLeftValueTextView" parent="CoinRowTextView">
-        <item name="android:paddingLeft">@dimen/view_coin_row_padding</item>
+    <style name="CoinRowLeftValueTextView" parent="RowTextView">
+        <item name="android:paddingLeft">@dimen/view_row_padding</item>
         <item name="android:textSize">@dimen/view_coin_row_value_text_size</item>
         <item name="layout_columnWeight">6</item>
     </style>
 
-    <style name="CoinRowRightLabelTextView" parent="CoinRowTextView">
+    <style name="CoinRowRightLabelTextView" parent="RowTextView">
         <item name="android:textSize">@dimen/view_coin_row_label_text_size</item>
         <item name="layout_columnWeight">5</item>
     </style>
 
-    <style name="CoinRowRightValueTextView" parent="CoinRowTextView">
-        <item name="android:paddingLeft">@dimen/view_coin_row_padding</item>
+    <style name="CoinRowRightValueTextView" parent="RowTextView">
+        <item name="android:paddingLeft">@dimen/view_row_padding</item>
         <item name="android:textSize">@dimen/view_coin_row_value_text_size</item>
         <item name="layout_columnWeight">5</item>
     </style>
