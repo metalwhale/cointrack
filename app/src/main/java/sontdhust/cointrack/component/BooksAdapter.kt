@@ -41,9 +41,9 @@ class BooksAdapter(context: Context, items: ArrayList<Book>?) : ArrayAdapter<Boo
         // Update new values
         viewHolder.price.text = book.price.toFormatString("###,##0.0000")
         viewHolder.amount.text = abs(book.amount).toFormatString("###,##0.00")
-        viewHolder.sum.text = book.sum.toFormatString("###,##0.00")
+        viewHolder.sum.text = abs(book.sum).toFormatString("###,##0.00")
         viewHolder.amountBar.setBackgroundColor(ContextCompat.getColor(context, if (book.amount > 0) R.color.lightGreen else R.color.lightRed))
-        (viewHolder.amountBar.layoutParams as LinearLayout.LayoutParams).weight = (book.amount / amount).toFloat()
+        (viewHolder.amountBar.layoutParams as LinearLayout.LayoutParams).weight = abs(book.amount / amount).toFloat()
         return rowView
     }
 

@@ -9,10 +9,9 @@ import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
-import android.widget.TextView
 import org.json.JSONArray
 import sontdhust.cointrack.R
-import sontdhust.cointrack.fragment.CoinDetailBidsFragment
+import sontdhust.cointrack.fragment.CoinDetailBooksFragment
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
 import sontdhust.cointrack.helper.DataFetcher
 import java.net.URI
@@ -27,13 +26,13 @@ class CoinDetailActivity : AppCompatActivity() {
     private var onTradesSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
     private var onTradesUpdate: ((JSONArray) -> Unit)? = null
     private var booksChannelId: Int? = null
-    private var onBooksSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
-    private var onBooksUpdate: ((JSONArray) -> Unit)? = null
+    private var onBooksSnapshots = ArrayList<(ArrayList<JSONArray>) -> Unit>()
+    private var onBooksUpdates = ArrayList<(JSONArray) -> Unit>()
 
     companion object {
         private val INTENT_NAME = "name"
         private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
-        private val FRAGMENTS = arrayOf("Trades", "Bids") // TODO: Use string resource
+        private val FRAGMENTS = arrayOf("Trades", "Bids", "Asks") // TODO: Use string resource
 
         fun intent(context: Context, name: String): Intent {
             val intent = Intent(context, CoinDetailActivity::class.java)
@@ -61,23 +60,10 @@ class CoinDetailActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val fragmentNameTextView = findViewById(R.id.fragment_name_text_view) as TextView
-        fragmentNameTextView.text = FRAGMENTS[0]
         adapter = SectionsPagerAdapter(supportFragmentManager)
         pager = findViewById(R.id.view_pager) as ViewPager
+        pager?.offscreenPageLimit = 2
         pager?.adapter = adapter
-        pager?.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-
-            override fun onPageScrollStateChanged(p0: Int) {
-            }
-
-            override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
-            }
-
-            override fun onPageSelected(p0: Int) {
-                fragmentNameTextView.text = FRAGMENTS[p0]
-            }
-        })
         createSocket()
     }
 
@@ -107,12 +93,12 @@ class CoinDetailActivity : AppCompatActivity() {
         this.onTradesUpdate = onTradesUpdate
     }
 
-    fun setOnBooksSnapshot(onBooksSnapshot: (ArrayList<JSONArray>) -> Unit) {
-        this.onBooksSnapshot = onBooksSnapshot
+    fun addOnBooksSnapshot(onBooksSnapshot: (ArrayList<JSONArray>) -> Unit) {
+        this.onBooksSnapshots.add(onBooksSnapshot)
     }
 
-    fun setOnBooksUpdate(onBooksUpdate: (JSONArray) -> Unit) {
-        this.onBooksUpdate = onBooksUpdate
+    fun addOnBooksUpdate(onBooksUpdate: (JSONArray) -> Unit) {
+        this.onBooksUpdates.add(onBooksUpdate)
     }
 
     /*
@@ -123,8 +109,9 @@ class CoinDetailActivity : AppCompatActivity() {
 
         override fun getItem(position: Int): Fragment {
             return when (position) {
-                0 -> CoinDetailTradesFragment()
-                1 -> CoinDetailBidsFragment()
+                0 -> CoinDetailTradesFragment.newInstance()
+                1 -> CoinDetailBooksFragment.newInstance(CoinDetailBooksFragment.Type.BIDS)
+                2 -> CoinDetailBooksFragment.newInstance(CoinDetailBooksFragment.Type.ASKS)
                 else -> {
                     Fragment()
                 }
@@ -133,6 +120,10 @@ class CoinDetailActivity : AppCompatActivity() {
 
         override fun getCount(): Int {
             return FRAGMENTS.size
+        }
+
+        override fun getPageTitle(position: Int): CharSequence {
+            return FRAGMENTS[position]
         }
     }
 
@@ -150,8 +141,10 @@ class CoinDetailActivity : AppCompatActivity() {
             id, snapshot ->
             if (id == tradesChannelId && onTradesSnapshot != null) {
                 onTradesSnapshot?.invoke(snapshot)
-            } else if (id == booksChannelId && onBooksSnapshot != null) {
-                onBooksSnapshot?.invoke(snapshot)
+            } else if (id == booksChannelId) {
+                for (onBooksSnapshot in onBooksSnapshots) {
+                    onBooksSnapshot.invoke(snapshot)
+                }
             }
         }
         socket.setOnSubscriptionUpdate {
@@ -162,8 +155,10 @@ class CoinDetailActivity : AppCompatActivity() {
             }
             if (id == tradesChannelId && onTradesUpdate != null) {
                 onTradesUpdate?.invoke(update)
-            } else if (id == booksChannelId && onBooksUpdate != null) {
-                onBooksUpdate?.invoke(update)
+            } else if (id == booksChannelId) {
+                for (onBooksUpdate in onBooksUpdates) {
+                    onBooksUpdate.invoke(update)
+                }
             }
         }
     }

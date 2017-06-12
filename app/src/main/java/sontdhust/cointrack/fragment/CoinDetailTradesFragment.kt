@@ -13,6 +13,14 @@ import sontdhust.cointrack.model.Trade
 
 class CoinDetailTradesFragment : Fragment() {
 
+    companion object {
+
+        fun newInstance(): CoinDetailTradesFragment {
+            val fragment = CoinDetailTradesFragment()
+            return fragment
+        }
+    }
+
     /*
      * Methods: Fragment
      */
@@ -33,7 +41,9 @@ class CoinDetailTradesFragment : Fragment() {
         coinDetailActivity.setOnTradesUpdate {
             trade ->
             if (trade.getString(0) == "te") {
-                list.removeAt(list.size - 1)
+                if (list.size > 0) {
+                    list.removeAt(list.size - 1)
+                }
                 list.add(0, Trade(trade.getDouble(3), trade.getDouble(4), trade.getInt(2)))
                 adapter.notifyDataSetChanged()
             }

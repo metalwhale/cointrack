@@ -10,12 +10,30 @@ import sontdhust.cointrack.R
 import sontdhust.cointrack.activity.CoinDetailActivity
 import sontdhust.cointrack.component.BooksAdapter
 import sontdhust.cointrack.model.Book
+import java.lang.Math.abs
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
-class CoinDetailBidsFragment : Fragment() {
+open class CoinDetailBooksFragment : Fragment() {
+
+    enum class Type {
+        BIDS, ASKS
+    }
 
     private lateinit var timer: Timer
+
+    companion object {
+
+        private val ARG_TYPE = "type"
+
+        fun newInstance(type: Type): CoinDetailBooksFragment {
+            val fragment = CoinDetailBooksFragment()
+            val args = Bundle()
+            args.putString(ARG_TYPE, type.name)
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     /*
      * Methods: Fragment
@@ -23,45 +41,46 @@ class CoinDetailBidsFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val view = inflater?.inflate(R.layout.fragment_coin_detail_bids, container, false)
-        val bidsListView = view?.findViewById(R.id.bids_list_view) as ListView
+        val type = Type.valueOf(arguments.getString(ARG_TYPE))
+        val view = inflater?.inflate(R.layout.fragment_coin_detail_books, container, false)
+        val booksListView = view?.findViewById(R.id.books_list_view) as ListView
         val list = ArrayList<Book>()
-        var bidsList = ArrayList<Book>()
+        var booksList = ArrayList<Book>()
         val adapter = BooksAdapter(activity, list)
-        bidsListView.adapter = adapter
+        booksListView.adapter = adapter
         val coinDetailActivity = activity as CoinDetailActivity
         fun updateList() {
-            bidsList.sortBy { -it.price }
+            booksList.sortBy { (if (type == Type.BIDS) -1 else 1) * it.price }
             var sum = 0.0
             list.clear()
-            list.addAll(bidsList.map {
+            list.addAll(booksList.map {
                 book ->
                 sum += book.amount
                 val newBook = book.copy()
                 newBook.sum = sum
                 newBook
             })
-            adapter.amount = bidsList.maxBy { it.amount }?.amount ?: 0.0
+            adapter.amount = booksList.maxBy { abs(it.amount) }?.amount ?: 0.0
         }
-        coinDetailActivity.setOnBooksSnapshot {
+        coinDetailActivity.addOnBooksSnapshot {
             books ->
-            books.mapTo(bidsList) { Book(it.getDouble(0), it.getDouble(2), it.getInt(1), 0.0) }
-            bidsList = ArrayList(bidsList.filter { it.amount > 0.0 })
+            books.mapTo(booksList) { Book(it.getDouble(0), it.getDouble(2), it.getInt(1), 0.0) }
+            booksList = ArrayList(booksList.filter { if (type == Type.BIDS) it.amount > 0.0 else it.amount < 0.0 })
             updateList()
             adapter.notifyDataSetChanged()
         }
-        coinDetailActivity.setOnBooksUpdate {
+        coinDetailActivity.addOnBooksUpdate {
             book ->
             val price = book.getDouble(0)
             val amount = book.getDouble(2)
             val count = book.getInt(1)
-            bidsList.removeAll { it.price == price }
-            if (count != 0 && amount > 0.0) {
-                bidsList.add(Book(price, amount, count, 0.0))
+            booksList.removeAll { it.price == price }
+            if (count != 0 && (type == Type.BIDS && amount > 0.0 || type == Type.ASKS && amount < 0.0)) {
+                booksList.add(Book(price, amount, count, 0.0))
             }
         }
         timer = fixedRateTimer(period = 5000, action = {
-            activity.runOnUiThread {
+            activity?.runOnUiThread {
                 updateList()
                 adapter.notifyDataSetChanged()
             }
@@ -70,6 +89,7 @@ class CoinDetailBidsFragment : Fragment() {
     }
 
     override fun onDetach() {
+        // FIXME: Correctly stop timer
         timer.cancel()
         timer.purge()
         super.onDetach()
