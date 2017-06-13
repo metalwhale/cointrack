@@ -107,7 +107,7 @@ class DataFetcher {
         }
     }
 
-    class Socket(val activity: Activity, val uri: URI) {
+    class Socket(val activity: Activity) {
 
         private var socketClient: WebSocketClient
         private val onOpens = ArrayList<() -> Unit>()
@@ -115,13 +115,17 @@ class DataFetcher {
         private var onSubscribedBooks: ((Int, String) -> Unit)? = null
         private var onSubscriptionSnapshot: ((Int, ArrayList<JSONArray>) -> Unit)? = null
         private var onSubscriptionUpdate: ((Int, JSONArray) -> Unit)? = null
+        private var onUnsubscribed: ((Int) -> Unit)? = null
+        private var onErrorSubscribeTrades: ((String) -> Unit)? = null
+        private var onErrorSubscribeBooks: ((String) -> Unit)? = null
 
         companion object {
+            private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
             private val SOCKET_STORE_PASS = "cointrack"
         }
 
         init {
-            socketClient = object : WebSocketClient(uri) {
+            socketClient = object : WebSocketClient(URI(SOCKET_URI)) {
 
                 override fun onOpen(serverHandshake: ServerHandshake) {
                     for (onOpen in onOpens) {
@@ -132,13 +136,18 @@ class DataFetcher {
                 override fun onMessage(message: String?) {
                     activity.runOnUiThread {
                         val data = JSONTokener(message).nextValue()
-                        if (data is JSONObject) {
-                            if (data.has("event") && data.getString("event") == "subscribed"
-                                    && data.has("channel")) {
-                                if (data.getString("channel") == "trades") {
-                                    onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
-                                } else if (data.getString("channel") == "book") {
-                                    onSubscribedBooks?.invoke(data.getInt("chanId"), data.getString("pair"))
+                        if (data is JSONObject && data.has("event")) {
+                            when (data.getString("event")) {
+                                "subscribed" -> when (data.getString("channel")) {
+                                    "trades" -> onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
+                                    "book" -> onSubscribedBooks?.invoke(data.getInt("chanId"), data.getString("pair"))
+                                }
+                                "unsubscribed" -> onUnsubscribed?.invoke(data.getInt("chanId"))
+                                "error" -> when (data.getString("msg").split(":")[0]) {
+                                    "subscribe" -> when (data.getString("channel")) {
+                                        "trades" -> onErrorSubscribeTrades?.invoke(data.getString("pair"))
+                                        "book" -> onErrorSubscribeBooks?.invoke(data.getString("pair"))
+                                    }
                                 }
                             }
                         } else if (data is JSONArray) {
@@ -232,6 +241,18 @@ class DataFetcher {
 
         fun setOnSubscriptionUpdate(onSubscriptionUpdate: (Int, JSONArray) -> Unit) {
             this.onSubscriptionUpdate = onSubscriptionUpdate
+        }
+
+        fun setOnUnsubscribed(onUnsubscribed: (Int) -> Unit) {
+            this.onUnsubscribed = onUnsubscribed
+        }
+
+        fun setOnErrorSubscribeTrades(onErrorSubscribeTrades: (String) -> Unit) {
+            this.onErrorSubscribeTrades = onErrorSubscribeTrades
+        }
+
+        fun setOnErrorSubscribeBooks(onErrorSubscribeBooks: (String) -> Unit) {
+            this.onErrorSubscribeBooks = onErrorSubscribeBooks
         }
 
         fun close() {

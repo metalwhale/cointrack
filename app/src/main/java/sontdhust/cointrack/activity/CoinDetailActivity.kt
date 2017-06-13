@@ -12,9 +12,9 @@ import android.support.v7.widget.Toolbar
 import org.json.JSONArray
 import sontdhust.cointrack.R
 import sontdhust.cointrack.fragment.CoinDetailBooksFragment
+import sontdhust.cointrack.fragment.CoinDetailBooksFragment.Type
 import sontdhust.cointrack.fragment.CoinDetailTradesFragment
 import sontdhust.cointrack.helper.DataFetcher
-import java.net.URI
 
 class CoinDetailActivity : AppCompatActivity() {
 
@@ -23,15 +23,16 @@ class CoinDetailActivity : AppCompatActivity() {
     private var pager: ViewPager? = null
     private var socket: DataFetcher.Socket? = null
     private var tradesChannelId: Int? = null
-    private var onTradesSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
-    private var onTradesUpdate: ((JSONArray) -> Unit)? = null
     private var booksChannelId: Int? = null
-    private var onBooksSnapshots = ArrayList<(ArrayList<JSONArray>) -> Unit>()
-    private var onBooksUpdates = ArrayList<(JSONArray) -> Unit>()
+    private var onTradesSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
+    private var onBooksSnapshots = HashMap<String, (ArrayList<JSONArray>) -> Unit>()
+    private var onTradesUpdate: ((JSONArray) -> Unit)? = null
+    private var onBooksUpdates = HashMap<String, (JSONArray) -> Unit>()
+    private var isResubscribingTrades = false
+    private var isResubscribingBooks = false
 
     companion object {
         private val INTENT_NAME = "name"
-        private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
         private val FRAGMENTS = arrayOf("Trades", "Bids", "Asks") // TODO: Use string resource
 
         fun intent(context: Context, name: String): Intent {
@@ -62,7 +63,7 @@ class CoinDetailActivity : AppCompatActivity() {
 
         adapter = SectionsPagerAdapter(supportFragmentManager)
         pager = findViewById(R.id.view_pager) as ViewPager
-        pager?.offscreenPageLimit = 2
+        pager?.offscreenPageLimit = 1
         pager?.adapter = adapter
         createSocket()
     }
@@ -90,9 +91,11 @@ class CoinDetailActivity : AppCompatActivity() {
         }
     }
 
-    fun unsubscribeBooks() {
-        if (booksChannelId != null) {
-            socket?.unsubscribe(booksChannelId as Int)
+    fun unsubscribeBooks(tag: String) {
+        onBooksSnapshots.remove(tag)
+        onBooksUpdates.remove(tag)
+        if (onBooksSnapshots.isEmpty() && onBooksUpdates.isEmpty()) {
+            unsubscribeBooks()
         }
     }
 
@@ -104,12 +107,12 @@ class CoinDetailActivity : AppCompatActivity() {
         this.onTradesUpdate = onTradesUpdate
     }
 
-    fun addOnBooksSnapshot(onBooksSnapshot: (ArrayList<JSONArray>) -> Unit) {
-        this.onBooksSnapshots.add(onBooksSnapshot)
+    fun addOnBooksSnapshot(tag: String, onBooksSnapshot: (ArrayList<JSONArray>) -> Unit) {
+        onBooksSnapshots[tag] = onBooksSnapshot
     }
 
-    fun addOnBooksUpdate(onBooksUpdate: (JSONArray) -> Unit) {
-        this.onBooksUpdates.add(onBooksUpdate)
+    fun addOnBooksUpdate(tag: String, onBooksUpdate: (JSONArray) -> Unit) {
+        onBooksUpdates[tag] = onBooksUpdate
     }
 
     /*
@@ -121,8 +124,8 @@ class CoinDetailActivity : AppCompatActivity() {
         override fun getItem(position: Int): Fragment {
             return when (position) {
                 0 -> CoinDetailTradesFragment.newInstance()
-                1 -> CoinDetailBooksFragment.newInstance(CoinDetailBooksFragment.Type.BIDS)
-                2 -> CoinDetailBooksFragment.newInstance(CoinDetailBooksFragment.Type.ASKS)
+                1 -> CoinDetailBooksFragment.newInstance(Type.BIDS)
+                2 -> CoinDetailBooksFragment.newInstance(Type.ASKS)
                 else -> {
                     Fragment()
                 }
@@ -139,21 +142,23 @@ class CoinDetailActivity : AppCompatActivity() {
     }
 
     private fun createSocket() {
-        socket = DataFetcher.Socket(this, URI(SOCKET_URI))
+        socket = DataFetcher.Socket(this)
         socket?.setOnSubscribedTrades {
             id, _ ->
             tradesChannelId = id
+            isResubscribingTrades = false
         }
         socket?.setOnSubscribedBooks {
             id, _ ->
             booksChannelId = id
+            isResubscribingBooks = false
         }
         socket?.setOnSubscriptionSnapshot {
             id, snapshot ->
             if (id == tradesChannelId) {
                 onTradesSnapshot?.invoke(snapshot)
             } else if (id == booksChannelId) {
-                for (onBooksSnapshot in onBooksSnapshots) {
+                for (onBooksSnapshot in onBooksSnapshots.values) {
                     onBooksSnapshot.invoke(snapshot)
                 }
             }
@@ -167,10 +172,39 @@ class CoinDetailActivity : AppCompatActivity() {
             if (id == tradesChannelId) {
                 onTradesUpdate?.invoke(update)
             } else if (id == booksChannelId) {
-                for (onBooksUpdate in onBooksUpdates) {
+                for (onBooksUpdate in onBooksUpdates.values) {
                     onBooksUpdate.invoke(update)
                 }
             }
+        }
+        socket?.setOnUnsubscribed {
+            channelId ->
+            when (channelId) {
+                tradesChannelId -> tradesChannelId = null
+                booksChannelId -> booksChannelId = null
+            }
+            if (isResubscribingTrades) {
+                subscribeTrades()
+            }
+            if (isResubscribingBooks) {
+                subscribeBooks()
+            }
+        }
+        socket?.setOnErrorSubscribeTrades {
+            _ ->
+            isResubscribingTrades = true
+            unsubscribeTrades()
+        }
+        socket?.setOnErrorSubscribeBooks {
+            _ ->
+            isResubscribingBooks = true
+            unsubscribeBooks()
+        }
+    }
+
+    private fun unsubscribeBooks() {
+        if (booksChannelId != null) {
+            socket?.unsubscribe(booksChannelId as Int)
         }
     }
 }

@@ -21,6 +21,7 @@ open class CoinDetailBooksFragment : Fragment() {
     }
 
     private var timer: Timer? = null
+    private var type: Type? = null
 
     companion object {
 
@@ -41,7 +42,7 @@ open class CoinDetailBooksFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val type = Type.valueOf(arguments.getString(ARG_TYPE))
+        type = Type.valueOf(arguments.getString(ARG_TYPE))
         val view = inflater?.inflate(R.layout.fragment_coin_detail_books, container, false)
         val booksListView = view?.findViewById(R.id.books_list_view) as ListView
         val list = ArrayList<Book>()
@@ -62,15 +63,15 @@ open class CoinDetailBooksFragment : Fragment() {
             })
             adapter.amount = booksList.maxBy { abs(it.amount) }?.amount ?: 0.0
         }
-        coinDetailActivity.addOnBooksSnapshot {
+        coinDetailActivity.addOnBooksSnapshot(type?.name ?: "", {
             books ->
             booksList.clear()
             books.mapTo(booksList) { Book(it.getDouble(0), it.getDouble(2), it.getInt(1), 0.0) }
             booksList = ArrayList(booksList.filter { if (type == Type.BIDS) it.amount > 0.0 else it.amount < 0.0 })
             updateList()
             adapter.notifyDataSetChanged()
-        }
-        coinDetailActivity.addOnBooksUpdate {
+        })
+        coinDetailActivity.addOnBooksUpdate(type?.name ?: "", {
             book ->
             val price = book.getDouble(0)
             val amount = book.getDouble(2)
@@ -79,7 +80,7 @@ open class CoinDetailBooksFragment : Fragment() {
             if (count != 0 && (type == Type.BIDS && amount > 0.0 || type == Type.ASKS && amount < 0.0)) {
                 booksList.add(Book(price, amount, count, 0.0))
             }
-        }
+        })
         coinDetailActivity.subscribeBooks()
         timer = fixedRateTimer(period = 5000, action = {
             activity?.runOnUiThread {
@@ -91,7 +92,7 @@ open class CoinDetailBooksFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        (activity as CoinDetailActivity).unsubscribeBooks()
+        (activity as CoinDetailActivity).unsubscribeBooks(type?.name ?: "")
         // FIXME: Correctly stop timer
         timer?.cancel()
         timer?.purge()
