@@ -20,7 +20,7 @@ open class CoinDetailBooksFragment : Fragment() {
         BIDS, ASKS
     }
 
-    private lateinit var timer: Timer
+    private var timer: Timer? = null
 
     companion object {
 
@@ -64,6 +64,7 @@ open class CoinDetailBooksFragment : Fragment() {
         }
         coinDetailActivity.addOnBooksSnapshot {
             books ->
+            booksList.clear()
             books.mapTo(booksList) { Book(it.getDouble(0), it.getDouble(2), it.getInt(1), 0.0) }
             booksList = ArrayList(booksList.filter { if (type == Type.BIDS) it.amount > 0.0 else it.amount < 0.0 })
             updateList()
@@ -79,6 +80,7 @@ open class CoinDetailBooksFragment : Fragment() {
                 booksList.add(Book(price, amount, count, 0.0))
             }
         }
+        coinDetailActivity.subscribeBooks()
         timer = fixedRateTimer(period = 5000, action = {
             activity?.runOnUiThread {
                 updateList()
@@ -88,10 +90,11 @@ open class CoinDetailBooksFragment : Fragment() {
         return view
     }
 
-    override fun onDetach() {
+    override fun onDestroyView() {
+        (activity as CoinDetailActivity).unsubscribeBooks()
         // FIXME: Correctly stop timer
-        timer.cancel()
-        timer.purge()
-        super.onDetach()
+        timer?.cancel()
+        timer?.purge()
+        super.onDestroyView()
     }
 }

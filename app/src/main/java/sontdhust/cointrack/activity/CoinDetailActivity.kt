@@ -21,7 +21,7 @@ class CoinDetailActivity : AppCompatActivity() {
     private var name: String = ""
     private var adapter: SectionsPagerAdapter? = null
     private var pager: ViewPager? = null
-    private lateinit var socket: DataFetcher.Socket
+    private var socket: DataFetcher.Socket? = null
     private var tradesChannelId: Int? = null
     private var onTradesSnapshot: ((ArrayList<JSONArray>) -> Unit)? = null
     private var onTradesUpdate: ((JSONArray) -> Unit)? = null
@@ -67,23 +67,34 @@ class CoinDetailActivity : AppCompatActivity() {
         createSocket()
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (!socket.isOpen) {
-            socket.connect()
-            socket.subscribeTrades(name)
-            socket.subscribeBooks(name)
-        }
-    }
-
     override fun onDestroy() {
-        socket.close()
+        socket?.close()
         super.onDestroy()
     }
 
     /*
      * Actions
      */
+
+    fun subscribeTrades() {
+        socket?.subscribeTrades(name)
+    }
+
+    fun subscribeBooks() {
+        socket?.subscribeBooks(name)
+    }
+
+    fun unsubscribeTrades() {
+        if (tradesChannelId != null) {
+            socket?.unsubscribe(tradesChannelId as Int)
+        }
+    }
+
+    fun unsubscribeBooks() {
+        if (booksChannelId != null) {
+            socket?.unsubscribe(booksChannelId as Int)
+        }
+    }
 
     fun setOnTradesSnapshot(onTradesSnapshot: (ArrayList<JSONArray>) -> Unit) {
         this.onTradesSnapshot = onTradesSnapshot
@@ -129,17 +140,17 @@ class CoinDetailActivity : AppCompatActivity() {
 
     private fun createSocket() {
         socket = DataFetcher.Socket(this, URI(SOCKET_URI))
-        socket.setOnSubscribedTrades {
+        socket?.setOnSubscribedTrades {
             id, _ ->
             tradesChannelId = id
         }
-        socket.setOnSubscribedBooks {
+        socket?.setOnSubscribedBooks {
             id, _ ->
             booksChannelId = id
         }
-        socket.setOnSubscriptionSnapshot {
+        socket?.setOnSubscriptionSnapshot {
             id, snapshot ->
-            if (id == tradesChannelId && onTradesSnapshot != null) {
+            if (id == tradesChannelId) {
                 onTradesSnapshot?.invoke(snapshot)
             } else if (id == booksChannelId) {
                 for (onBooksSnapshot in onBooksSnapshots) {
@@ -147,13 +158,13 @@ class CoinDetailActivity : AppCompatActivity() {
                 }
             }
         }
-        socket.setOnSubscriptionUpdate {
+        socket?.setOnSubscriptionUpdate {
             id, update ->
             val isHeartBeat = update.getString(0) == "hb"
             if (isHeartBeat) {
                 return@setOnSubscriptionUpdate
             }
-            if (id == tradesChannelId && onTradesUpdate != null) {
+            if (id == tradesChannelId) {
                 onTradesUpdate?.invoke(update)
             } else if (id == booksChannelId) {
                 for (onBooksUpdate in onBooksUpdates) {

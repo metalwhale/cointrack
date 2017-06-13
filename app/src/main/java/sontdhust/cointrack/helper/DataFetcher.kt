@@ -110,6 +110,7 @@ class DataFetcher {
     class Socket(val activity: Activity, val uri: URI) {
 
         private var socketClient: WebSocketClient
+        private val onOpens = ArrayList<() -> Unit>()
         private var onSubscribedTrades: ((Int, String) -> Unit)? = null
         private var onSubscribedBooks: ((Int, String) -> Unit)? = null
         private var onSubscriptionSnapshot: ((Int, ArrayList<JSONArray>) -> Unit)? = null
@@ -123,6 +124,9 @@ class DataFetcher {
             socketClient = object : WebSocketClient(uri) {
 
                 override fun onOpen(serverHandshake: ServerHandshake) {
+                    for (onOpen in onOpens) {
+                        onOpen.invoke()
+                    }
                 }
 
                 override fun onMessage(message: String?) {
@@ -131,9 +135,9 @@ class DataFetcher {
                         if (data is JSONObject) {
                             if (data.has("event") && data.getString("event") == "subscribed"
                                     && data.has("channel")) {
-                                if (data.getString("channel") == "trades" && onSubscribedTrades != null) {
+                                if (data.getString("channel") == "trades") {
                                     onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
-                                } else if (data.getString("channel") == "book" && onSubscribedBooks != null) {
+                                } else if (data.getString("channel") == "book") {
                                     onSubscribedBooks?.invoke(data.getInt("chanId"), data.getString("pair"))
                                 }
                             }
@@ -145,17 +149,13 @@ class DataFetcher {
                                 for (update in value) {
                                     snapshot.add(update as JSONArray)
                                 }
-                                if (onSubscriptionSnapshot != null) {
-                                    onSubscriptionSnapshot?.invoke(channelId, snapshot)
-                                }
+                                onSubscriptionSnapshot?.invoke(channelId, snapshot)
                             } else {
                                 val update = JSONArray()
                                 for (i in 1..(data.length() - 1)) {
                                     update.put(data.get(i))
                                 }
-                                if (onSubscriptionUpdate != null) {
-                                    onSubscriptionUpdate?.invoke(channelId, update)
-                                }
+                                onSubscriptionUpdate?.invoke(channelId, update)
                             }
                         }
                     }
@@ -178,24 +178,44 @@ class DataFetcher {
             val sslContext = SSLContext.getInstance("TLS")
             sslContext?.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
             socketClient.socket = sslContext.socketFactory.createSocket()
+            socketClient.connect()
         }
 
         /*
          * Actions
          */
 
-        val isOpen: Boolean get() = socketClient.isOpen
-
-        fun connect() {
-            socketClient.connectBlocking()
-        }
-
         fun subscribeTrades(pair: String) {
-            socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$pair$CURRENCY\" }")
+            val subscribe = {
+                socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$pair$CURRENCY\" }")
+            }
+            if (socketClient.isOpen) {
+                subscribe()
+            } else {
+                onOpens.add(subscribe)
+            }
         }
 
         fun subscribeBooks(pair: String) {
-            socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"book\", \"pair\": \"$pair$CURRENCY\", \"prec\": \"P0\", \"len\": \"100\" }")
+            val subscribe = {
+                socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"book\", \"pair\": \"$pair$CURRENCY\", \"prec\": \"P0\", \"len\": \"100\" }")
+            }
+            if (socketClient.isOpen) {
+                subscribe()
+            } else {
+                onOpens.add(subscribe)
+            }
+        }
+
+        fun unsubscribe(channelId: Int) {
+            val unsubscribe = {
+                socketClient.send("{ \"event\": \"unsubscribe\", \"chanId\": \"$channelId\" }")
+            }
+            if (socketClient.isOpen) {
+                unsubscribe()
+            } else {
+                onOpens.add(unsubscribe)
+            }
         }
 
         fun setOnSubscribedTrades(onSubscribedTrades: (Int, String) -> Unit) {

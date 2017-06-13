@@ -48,6 +48,12 @@ class CoinDetailTradesFragment : Fragment() {
                 adapter.notifyDataSetChanged()
             }
         }
+        coinDetailActivity.subscribeTrades()
         return view
+    }
+
+    override fun onDestroyView() {
+        (activity as CoinDetailActivity).unsubscribeTrades()
+        super.onDestroyView()
     }
 }
