@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.GridLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/view_row_padding"
+    app:columnCount="4"
+    app:rowCount="7">
+
+    <TextView
+        android:id="@+id/name_text_view"
+        style="@style/CoinRowLeftLabelTextView"
+        android:textColor="@color/purple"
+        android:textSize="@dimen/view_coin_row_name_text_size"/>
+
+    <TextView
+        style="@style/CoinRowLeftValueTextView"
+        android:gravity="end"
+        android:text="@string/label_price"/>
+
+    <TextView
+        android:id="@+id/price_text_view"
+        style="@style/CoinRowRightValueTextView"
+        android:textColor="@color/orange"
+        android:textSize="@dimen/view_coin_row_price_text_size"
+        app:layout_columnSpan="2"
+        app:layout_columnWeight="10"/>
+
+    <TextView
+        style="@style/CoinRowLeftLabelTextView"
+        android:text="@string/label_change_abs"/>
+
+    <TextView
+        android:id="@+id/change_abs_text_view"
+        style="@style/CoinRowLeftValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowRightLabelTextView"
+        android:text="@string/label_change_rel"/>
+
+    <TextView
+        android:id="@+id/change_rel_text_view"
+        style="@style/CoinRowRightValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowLeftLabelTextView"
+        android:text="@string/label_bid"/>
+
+    <TextView
+        android:id="@+id/bid_text_view"
+        style="@style/CoinRowLeftValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowRightLabelTextView"
+        android:text="@string/label_max"/>
+
+    <TextView
+        android:id="@+id/max_text_view"
+        style="@style/CoinRowRightValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowLeftLabelTextView"
+        android:text="@string/label_ask"/>
+
+    <TextView
+        android:id="@+id/ask_text_view"
+        style="@style/CoinRowLeftValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowRightLabelTextView"
+        android:text="@string/label_min"/>
+
+    <TextView
+        android:id="@+id/min_text_view"
+        style="@style/CoinRowRightValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowLeftLabelTextView"
+        android:text="@string/label_volume_day"/>
+
+    <TextView
+        android:id="@+id/volume_day_text_view"
+        style="@style/CoinRowLeftValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowRightLabelTextView"
+        android:text="@string/label_volume_change"/>
+
+    <TextView
+        android:id="@+id/volume_change_text_view"
+        style="@style/CoinRowRightValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowLeftLabelTextView"
+        android:text="@string/label_volume_week"/>
+
+    <TextView
+        android:id="@+id/volume_week_text_view"
+        style="@style/CoinRowLeftValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowRightLabelTextView"
+        android:text="@string/label_vwap"/>
+
+    <TextView
+        android:id="@+id/vwap_text_view"
+        style="@style/CoinRowRightValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowLeftLabelTextView"
+        android:text="@string/label_volume_month"/>
+
+    <TextView
+        android:id="@+id/volume_month_text_view"
+        style="@style/CoinRowLeftValueTextView"/>
+
+    <TextView
+        style="@style/CoinRowRightLabelTextView"
+        android:text="@string/label_buy"/>
+
+    <TextView
+        android:id="@+id/buy_text_view"
+        style="@style/CoinRowRightValueTextView"/>
+</android.support.v7.widget.GridLayout>

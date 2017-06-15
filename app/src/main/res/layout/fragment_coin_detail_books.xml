@@ -1,0 +1,38 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="sontdhust.cointrack.fragment.CoinDetailBooksFragment">
+
+    <android.support.v7.widget.GridLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/view_row_padding"
+        app:columnCount="4"
+        app:rowCount="1">
+
+        <TextView
+            android:gravity="center"
+            android:text="@string/label_price"
+            app:layout_columnWeight="1"/>
+
+        <TextView
+            android:gravity="center"
+            android:text="@string/label_amount"
+            app:layout_columnWeight="1"/>
+
+        <TextView
+            android:gravity="center"
+            android:text="@string/label_sum"
+            app:layout_columnWeight="1"/>
+    </android.support.v7.widget.GridLayout>
+
+    <ListView
+        android:id="@+id/books_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>
