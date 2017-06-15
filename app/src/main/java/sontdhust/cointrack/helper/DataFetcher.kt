@@ -107,31 +107,47 @@ class DataFetcher {
         }
     }
 
-    class Socket(val activity: Activity, val uri: URI) {
+    class Socket(val activity: Activity) {
 
         private var socketClient: WebSocketClient
+        private val onOpens = ArrayList<() -> Unit>()
         private var onSubscribedTrades: ((Int, String) -> Unit)? = null
+        private var onSubscribedBooks: ((Int, String) -> Unit)? = null
         private var onSubscriptionSnapshot: ((Int, ArrayList<JSONArray>) -> Unit)? = null
         private var onSubscriptionUpdate: ((Int, JSONArray) -> Unit)? = null
+        private var onUnsubscribed: ((Int) -> Unit)? = null
+        private var onErrorSubscribeTrades: ((String) -> Unit)? = null
+        private var onErrorSubscribeBooks: ((String) -> Unit)? = null
 
         companion object {
+            private val SOCKET_URI = "wss://api2.bitfinex.com:3000/ws"
             private val SOCKET_STORE_PASS = "cointrack"
         }
 
         init {
-            socketClient = object : WebSocketClient(uri) {
+            socketClient = object : WebSocketClient(URI(SOCKET_URI)) {
 
                 override fun onOpen(serverHandshake: ServerHandshake) {
+                    for (onOpen in onOpens) {
+                        onOpen.invoke()
+                    }
                 }
 
                 override fun onMessage(message: String?) {
                     activity.runOnUiThread {
                         val data = JSONTokener(message).nextValue()
-                        if (data is JSONObject) {
-                            if (data.has("event") && data.getString("event") == "subscribed"
-                                    && data.has("channel") && data.getString("channel") == "trades") {
-                                if (onSubscribedTrades != null) {
-                                    onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
+                        if (data is JSONObject && data.has("event")) {
+                            when (data.getString("event")) {
+                                "subscribed" -> when (data.getString("channel")) {
+                                    "trades" -> onSubscribedTrades?.invoke(data.getInt("chanId"), data.getString("pair"))
+                                    "book" -> onSubscribedBooks?.invoke(data.getInt("chanId"), data.getString("pair"))
+                                }
+                                "unsubscribed" -> onUnsubscribed?.invoke(data.getInt("chanId"))
+                                "error" -> when (data.getString("msg").split(":")[0]) {
+                                    "subscribe" -> when (data.getString("channel")) {
+                                        "trades" -> onErrorSubscribeTrades?.invoke(data.getString("pair"))
+                                        "book" -> onErrorSubscribeBooks?.invoke(data.getString("pair"))
+                                    }
                                 }
                             }
                         } else if (data is JSONArray) {
@@ -142,17 +158,13 @@ class DataFetcher {
                                 for (update in value) {
                                     snapshot.add(update as JSONArray)
                                 }
-                                if (onSubscriptionSnapshot != null) {
-                                    onSubscriptionSnapshot?.invoke(channelId, snapshot)
-                                }
+                                onSubscriptionSnapshot?.invoke(channelId, snapshot)
                             } else {
                                 val update = JSONArray()
                                 for (i in 1..(data.length() - 1)) {
                                     update.put(data.get(i))
                                 }
-                                if (onSubscriptionUpdate != null) {
-                                    onSubscriptionUpdate?.invoke(channelId, update)
-                                }
+                                onSubscriptionUpdate?.invoke(channelId, update)
                             }
                         }
                     }
@@ -163,7 +175,6 @@ class DataFetcher {
                 }
 
                 override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                    System.out.println(reason)
                 }
             }
             val keyStore = KeyStore.getInstance("BKS")
@@ -176,24 +187,52 @@ class DataFetcher {
             val sslContext = SSLContext.getInstance("TLS")
             sslContext?.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
             socketClient.socket = sslContext.socketFactory.createSocket()
+            socketClient.connect()
         }
 
         /*
          * Actions
          */
 
-        val isOpen: Boolean get() = socketClient.isOpen
-
-        fun connect() {
-            socketClient.connectBlocking()
+        fun subscribeTrades(pair: String) {
+            val subscribe = {
+                socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$pair$CURRENCY\" }")
+            }
+            if (socketClient.isOpen) {
+                subscribe()
+            } else {
+                onOpens.add(subscribe)
+            }
         }
 
-        fun subscribeTrades(pair: String) {
-            socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"trades\", \"pair\": \"$pair$CURRENCY\" }")
+        fun subscribeBooks(pair: String) {
+            val subscribe = {
+                socketClient.send("{ \"event\": \"subscribe\", \"channel\": \"book\", \"pair\": \"$pair$CURRENCY\", \"prec\": \"P0\", \"len\": \"100\" }")
+            }
+            if (socketClient.isOpen) {
+                subscribe()
+            } else {
+                onOpens.add(subscribe)
+            }
+        }
+
+        fun unsubscribe(channelId: Int) {
+            val unsubscribe = {
+                socketClient.send("{ \"event\": \"unsubscribe\", \"chanId\": \"$channelId\" }")
+            }
+            if (socketClient.isOpen) {
+                unsubscribe()
+            } else {
+                onOpens.add(unsubscribe)
+            }
         }
 
         fun setOnSubscribedTrades(onSubscribedTrades: (Int, String) -> Unit) {
             this.onSubscribedTrades = onSubscribedTrades
+        }
+
+        fun setOnSubscribedBooks(onSubscribedBooks: (Int, String) -> Unit) {
+            this.onSubscribedBooks = onSubscribedBooks
         }
 
         fun setOnSubscriptionSnapshot(onSubscriptionSnapshot: (Int, ArrayList<JSONArray>) -> Unit) {
@@ -202,6 +241,18 @@ class DataFetcher {
 
         fun setOnSubscriptionUpdate(onSubscriptionUpdate: (Int, JSONArray) -> Unit) {
             this.onSubscriptionUpdate = onSubscriptionUpdate
+        }
+
+        fun setOnUnsubscribed(onUnsubscribed: (Int) -> Unit) {
+            this.onUnsubscribed = onUnsubscribed
+        }
+
+        fun setOnErrorSubscribeTrades(onErrorSubscribeTrades: (String) -> Unit) {
+            this.onErrorSubscribeTrades = onErrorSubscribeTrades
+        }
+
+        fun setOnErrorSubscribeBooks(onErrorSubscribeBooks: (String) -> Unit) {
+            this.onErrorSubscribeBooks = onErrorSubscribeBooks
         }
 
         fun close() {

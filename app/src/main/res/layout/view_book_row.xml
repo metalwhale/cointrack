@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/_book_layout"
+        android:layout_alignTop="@id/_book_layout"
+        android:gravity="end"
+        android:weightSum="1">
+
+        <View
+            android:id="@+id/amount_bar_view"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+
+    <android.support.v7.widget.GridLayout
+        android:id="@+id/_book_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/view_row_padding"
+        app:columnCount="4"
+        app:rowCount="1">
+
+        <TextView
+            android:id="@+id/price_text_view"
+            style="@style/RowTextView"
+            android:gravity="center"
+            android:textColor="@color/orange"
+            android:textSize="@dimen/view_row_text_size"
+            app:layout_columnWeight="1"/>
+
+        <TextView
+            android:id="@+id/amount_text_view"
+            style="@style/RowTextView"
+            android:gravity="center"
+            android:textColor="@color/purple"
+            android:textSize="@dimen/view_row_text_size"
+            app:layout_columnWeight="1"/>
+
+        <TextView
+            android:id="@+id/sum_text_view"
+            style="@style/RowTextView"
+            android:gravity="center"
+            android:textSize="@dimen/view_row_text_size"
+            app:layout_columnWeight="1"/>
+    </android.support.v7.widget.GridLayout>
+</RelativeLayout>

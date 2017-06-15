@@ -63,7 +63,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
                     downFields.add(field)
                 }
             }
-            val upAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.lightGreen), Color.TRANSPARENT)
+            val upAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.mediumGreen), Color.TRANSPARENT)
             upAnimator.duration = 5000
             upAnimator.addUpdateListener {
                 animator ->
@@ -72,7 +72,7 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
                     viewHolder.fields[field]?.setBackgroundColor(animator.animatedValue as Int)
                 }
             }
-            val downAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.lightRed), Color.TRANSPARENT)
+            val downAnimator = ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.mediumRed), Color.TRANSPARENT)
             downAnimator.duration = 5000
             downAnimator.addUpdateListener {
                 animator ->
@@ -122,8 +122,8 @@ class CoinsAdapter(context: Context, items: ArrayList<Coin>?) : ArrayAdapter<Coi
 
     private fun formatField(coin: Coin, field: Field): String {
         return if (field == Field.VOLUME_DAY || field == Field.VOLUME_WEEK || field == Field.VOLUME_MONTH)
-            coin[field].toFormatString("###,###")
+            coin[field].toFormatString("###,##0")
         else
-            coin[field].toFormatString("###,###.###")
+            coin[field].toFormatString("###,##0.###")
     }
 }

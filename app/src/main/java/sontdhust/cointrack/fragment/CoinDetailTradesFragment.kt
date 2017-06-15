@@ -13,16 +13,10 @@ import sontdhust.cointrack.model.Trade
 
 class CoinDetailTradesFragment : Fragment() {
 
-    private var name: String? = null
-
     companion object {
-        private val ARG_NAME = ""
 
-        fun newInstance(name: String): CoinDetailTradesFragment {
+        fun newInstance(): CoinDetailTradesFragment {
             val fragment = CoinDetailTradesFragment()
-            val args = Bundle()
-            args.putString(ARG_NAME, name)
-            fragment.arguments = args
             return fragment
         }
     }
@@ -30,13 +24,6 @@ class CoinDetailTradesFragment : Fragment() {
     /*
      * Methods: Fragment
      */
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            name = arguments.getString(ARG_NAME)
-        }
-    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -48,20 +35,25 @@ class CoinDetailTradesFragment : Fragment() {
         val coinDetailActivity = activity as CoinDetailActivity
         coinDetailActivity.setOnTradesSnapshot {
             trades ->
-            adapter.clear()
-            val tradesArray = ArrayList<Trade>()
-            trades.mapTo(tradesArray) { Trade(it.getDouble(2), it.getDouble(3), it.getInt(1)) }
-            adapter.addAll(tradesArray)
+            trades.mapTo(list) { Trade(it.getDouble(2), it.getDouble(3), it.getInt(1)) }
             adapter.notifyDataSetChanged()
         }
         coinDetailActivity.setOnTradesUpdate {
             trade ->
             if (trade.getString(0) == "te") {
-                list.removeAt(list.size - 1)
+                if (list.size > 0) {
+                    list.removeAt(list.size - 1)
+                }
                 list.add(0, Trade(trade.getDouble(3), trade.getDouble(4), trade.getInt(2)))
                 adapter.notifyDataSetChanged()
             }
         }
+        coinDetailActivity.subscribeTrades()
         return view
+    }
+
+    override fun onDestroyView() {
+        (activity as CoinDetailActivity).unsubscribeTrades()
+        super.onDestroyView()
     }
 }
